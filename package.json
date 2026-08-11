@@ -1,0 +1,16 @@
+{
+  "name": "amps-school-portal-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"yellow,cyan\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && (if exist .venv\\Scripts\\python (.\\.venv\\Scripts\\python -m uvicorn main:app --reload --port 8000) else (python -m uvicorn main:app --reload --port 8000))",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "lint": "cd frontend && npm run lint",
+    "format": "cd frontend && npm run format"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

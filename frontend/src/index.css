@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ─── Legacy palette (kept for backward compat) ─── */
+    --color-navy-primary: #0a192f;
+    --color-gold-secondary: #d97706;
+    --color-maroon-accent: #800000;
+
+    /* ─── AMPS Design System Tokens ─── */
+    --workspace-bg: #F6F8FC;
+    --sidebar-bg: #0F1117;
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 68px;
+    --topbar-height: 60px;
+    --sidebar-radius: 20px;
+
+    /* ─── Card Tokens ─── */
+    --card-bg: #ffffff;
+    --card-border: rgba(0,0,0,0.07);
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.08), 0 16px 40px rgba(0,0,0,0.06);
+    --card-radius: 20px;
+
+    /* ─── Typography Scale ─── */
+    --text-2xs: 10px;
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-lg: 16px;
+    --text-xl: 18px;
+    --text-2xl: 22px;
+    --text-3xl: 28px;
+    --text-4xl: 36px;
+
+    /* ─── Semantic Colors ─── */
+    --color-success: #16a34a;
+    --color-warning: #d97706;
+    --color-danger: #dc2626;
+    --color-info: #2563eb;
+
+    /* ─── Transition ─── */
+    --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ─── Base resets ─────────────────────────────────────────────── */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-[#F6F8FC] text-slate-900 font-sans antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    selection-color: #fef3c7;
+    letter-spacing: -0.01em;
+  }
+
+  /* ─── Custom Scrollbar ─── */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.12);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.20);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.12) transparent;
+  }
+
+  /* ─── Focus styles ─── */
+  :focus-visible {
+    outline: 2px solid var(--tenant-accent, #4f46e5);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* ─── Selection ─── */
+  ::selection {
+    background: rgba(79, 70, 229, 0.15);
+    color: inherit;
+  }
+}
+
+/* ─── Skeleton shimmer animation ─────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 25%,
+    #e2e8f0 50%,
+    #f1f5f9 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 6px;
+}
+
+/* ─── Page transition ─────────────────────────────────────────────── */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ─── Sidebar nav active pill ─────────────────────────────────────── */
+@keyframes pill-expand {
+  from { transform: scaleY(0.7); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+/* ─── Framer Motion helpers ─────────────────────────────────────── */
+.will-change-transform {
+  will-change: transform;
+}
+
+/* ─── Metric card trend animation ─── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.count-animate {
+  animation: count-up 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ─── Chart bar animation ─────────────────────────────────────────── */
+@keyframes bar-grow {
+  from { transform: scaleY(0); transform-origin: bottom; }
+  to { transform: scaleY(1); transform-origin: bottom; }
+}
+
+.chart-bar {
+  animation: bar-grow 600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ─── Progress bar animation ─────────────────────────────────────── */
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+.progress-fill {
+  animation: progress-fill 800ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ─── Notification badge pulse ─── */
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* ─── Collapsible sidebar ─────────────────────────────────────────── */
+.sidebar-transition {
+  transition: width var(--transition-slow), opacity var(--transition-base);
+}
+
+/* ─── Hover card lift ─────────────────────────────────────────────── */
+.card-lift {
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.card-lift:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ─── Glass morphism utility ─────────────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+/* ─── Truncate 2 lines ─────────────────────────────────────────────── */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

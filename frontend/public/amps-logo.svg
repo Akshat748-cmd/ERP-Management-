@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <!-- Outer Gold Radial Gradient -->
+    <radialGradient id="goldGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FCE881" />
+      <stop offset="70%" stop-color="#C89D34" />
+      <stop offset="100%" stop-color="#99701A" />
+    </radialGradient>
+    
+    <!-- Deep Maroon Gradient -->
+    <linearGradient id="maroonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A30000" />
+      <stop offset="100%" stop-color="#560000" />
+    </linearGradient>
+
+    <!-- Deep Navy Gradient -->
+    <linearGradient id="navyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A2D4D" />
+      <stop offset="100%" stop-color="#08101D" />
+    </linearGradient>
+
+    <!-- Gold Foil Text/Stroke Gradient -->
+    <linearGradient id="goldText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F3E5AB" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#AA7C11" />
+    </linearGradient>
+
+    <!-- Circular path for top school title text -->
+    <path id="topTextArc" d="M 50, 200 A 150,150 0 1,1 350,200" />
+    <!-- Circular path for bottom text -->
+    <path id="bottomTextArc" d="M 345, 200 A 145,145 0 0,1 55,200" />
+    
+    <!-- Soft Drop Shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+    
+    <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#FCE881" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Outer Shadowed Base -->
+  <circle cx="200" cy="200" r="190" fill="url(#navyGrad)" filter="url(#shadow)" />
+  
+  <!-- Outer Gold Ring Rim -->
+  <circle cx="200" cy="200" r="188" fill="none" stroke="url(#goldGrad)" stroke-width="8" />
+  <circle cx="200" cy="200" r="180" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="6 4" opacity="0.8" />
+
+  <!-- Outer Navy Blue Circular Text Ring -->
+  <circle cx="200" cy="200" r="172" fill="url(#navyGrad)" stroke="url(#goldGrad)" stroke-width="3" />
+
+  <!-- Top Curved Text: ASHISH MEMORIAL PUBLIC SR. SEC. SCHOOL -->
+  <text font-family="'Cinzel', 'Georgia', serif" font-weight="700" font-size="19.5" fill="url(#goldText)" letter-spacing="2">
+    <textPath href="#topTextArc" startOffset="50%" text-anchor="middle">
+      ASHISH MEMORIAL PUBLIC SR. SEC. SCHOOL
+    </textPath>
+  </text>
+
+  <!-- Bottom Curved Text: HINDAUN CITY · ESTD 2005 -->
+  <text font-family="'Inter', 'Arial', sans-serif" font-weight="600" font-size="14" fill="#E2E8F0" letter-spacing="3">
+    <textPath href="#bottomTextArc" startOffset="50%" text-anchor="middle">
+      ★ HINDAUN CITY ★ ESTD. 2005
+    </textPath>
+  </text>
+
+  <!-- Decorative Separator Stars on Ring -->
+  <g fill="url(#goldGrad)">
+    <polygon points="46,200 50,192 58,192 52,197 54,205 46,200" />
+    <polygon points="354,200 350,192 342,192 348,197 346,205 354,200" />
+  </g>
+
+  <!-- Inner Gold Ring Border -->
+  <circle cx="200" cy="200" r="126" fill="none" stroke="url(#goldGrad)" stroke-width="5" />
+  <circle cx="200" cy="200" r="120" fill="url(#maroonGrad)" stroke="#D4AF37" stroke-width="2" />
+
+  <!-- Background Rays / Sunburst in Inner Circle -->
+  <g opacity="0.15" stroke="url(#goldGrad)" stroke-width="2">
+    <line x1="200" y1="80" x2="200" y2="320" />
+    <line x1="80" y1="200" x2="320" y2="200" />
+    <line x1="115" y1="115" x2="285" y2="285" />
+    <line x1="115" y1="285" x2="285" y2="115" />
+  </g>
+
+  <!-- Crest Center Items -->
+
+  <!-- Rising Sun Motif -->
+  <g transform="translate(200, 140)">
+    <circle cx="0" cy="0" r="22" fill="url(#goldGrad)" filter="url(#innerGlow)" />
+    <!-- Sun Rays -->
+    <path d="M 0 -30 L 0 -24 M -21 -21 L -16 -16 M -30 0 L -24 0 M -21 21 L -16 16 M 0 30 L 0 24 M 21 21 L 16 16 M 30 0 L 24 0 M 21 -21 L 16 -16" 
+          stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- Open Book Emblem -->
+  <g transform="translate(200, 205)">
+    <!-- Book Shadow -->
+    <path d="M -55 12 Q 0 22 55 12 L 50 35 Q 0 45 -50 35 Z" fill="#000000" opacity="0.3" />
+    <!-- Left Page -->
+    <path d="M -52 5 Q -25 -5 0 8 L 0 32 Q -25 18 -50 28 Z" fill="#FFFDF0" stroke="url(#goldGrad)" stroke-width="2" />
+    <path d="M -44 8 Q -24 0 -5 11" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+    <path d="M -42 15 Q -24 7 -5 18" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+    <path d="M -40 22 Q -24 14 -5 25" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+    <!-- Right Page -->
+    <path d="M 52 5 Q 25 -5 0 8 L 0 32 Q 25 18 50 28 Z" fill="#FFFDF0" stroke="url(#goldGrad)" stroke-width="2" />
+    <path d="M 44 8 Q 24 0 5 11" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+    <path d="M 42 15 Q 24 7 5 18" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+    <path d="M 40 22 Q 24 14 5 25" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+    <!-- Book Spine -->
+    <path d="M 0 6 L 0 33" stroke="url(#goldGrad)" stroke-width="3" />
+  </g>
+
+  <!-- Central AMPS Monogram Text -->
+  <text x="200" y="272" text-anchor="middle" font-family="'Cinzel', 'Playfair Display', serif" font-weight="900" font-size="34" fill="url(#goldGrad)" letter-spacing="4" filter="url(#shadow)">
+    AMPS
+  </text>
+
+  <!-- Motto Ribbon at Bottom of Inner Crest -->
+  <g transform="translate(200, 298)">
+    <path d="M -65 -2 Q 0 8 65 -2 L 58 12 Q 0 20 -58 12 Z" fill="url(#goldGrad)" stroke="#560000" stroke-width="1" />
+    <text x="0" y="9" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="800" font-size="9" fill="#08101D" letter-spacing="1.5">
+      KNOWLEDGE · CHARACTER · EXCELLENCE
+    </text>
+  </g>
+</svg>
