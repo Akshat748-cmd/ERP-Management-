@@ -5,6 +5,7 @@ import secrets
 import uuid
 from fastapi import FastAPI, Depends, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
@@ -20,10 +21,22 @@ try:
         get_password_hash,
         create_access_token,
         decode_access_token,
+        get_acting_caller,
+        require_roles,
         IMPERSONATION_TOKEN_EXPIRE_MINUTES,
     )
     from seed import seed_database
     from routes.tenants import router as tenants_router
+    from routes.students import router as students_router
+    from routes.teachers import router as teachers_router
+    from routes.attendance import router as attendance_router
+    from routes.homework import router as homework_router
+    from routes.results import router as results_router
+    from routes.fees import router as fees_router
+    from routes.users import router as users_router
+    from routes.analytics import router as analytics_router
+    from routes.announcements import router as announcements_router
+    from routes.schedules import router as schedules_router
 except ImportError:
     from backend.database import get_db, SessionLocal, engine, Base
     from backend.models import User, Tenant, PasswordResetAudit, ImpersonationAudit
@@ -32,23 +45,59 @@ except ImportError:
         get_password_hash,
         create_access_token,
         decode_access_token,
+        get_acting_caller,
+        require_roles,
         IMPERSONATION_TOKEN_EXPIRE_MINUTES,
     )
     from backend.seed import seed_database
     from backend.routes.tenants import router as tenants_router
+    from backend.routes.students import router as students_router
+    from backend.routes.teachers import router as teachers_router
+    from backend.routes.attendance import router as attendance_router
+    from backend.routes.homework import router as homework_router
+    from backend.routes.results import router as results_router
+    from backend.routes.fees import router as fees_router
+    from backend.routes.users import router as users_router
+    from backend.routes.analytics import router as analytics_router
+    from backend.routes.announcements import router as announcements_router
+    from backend.routes.schedules import router as schedules_router
 
 # Initialize Database tables
 Base.metadata.create_all(bind=engine)
 
-# Conditionally seed demo data ONLY if tenants table is empty AND SEED_DEMO_DATA env flag is true
-if os.getenv("SEED_DEMO_DATA", "false").lower() == "true":
-    db_session = SessionLocal()
+# Auto-migrate missing columns for SQLite dev database
+with engine.connect() as conn:
     try:
-        tenant_count = db_session.query(Tenant).count()
-        if tenant_count == 0:
-            seed_database()
-    finally:
-        db_session.close()
+        conn.execute(text("ALTER TABLE homework ADD COLUMN is_active BOOLEAN DEFAULT 1;"))
+    except Exception:
+        pass
+    try:
+        conn.execute(text("ALTER TABLE homework ADD COLUMN deleted_at DATETIME NULL;"))
+    except Exception:
+        pass
+    conn.commit()
+
+# Ensure super_admin user always exists on app startup
+db_session = SessionLocal()
+try:
+    sa = db_session.query(User).filter(User.role == "super_admin").first()
+    if not sa:
+        sa_user = User(
+            id="usr_superadmin",
+            email="superadmin@amps.edu",
+            full_name="Super Administrator",
+            hashed_password=get_password_hash("superadmin"),
+            role="super_admin",
+            school_id="platform",
+            is_active=True,
+            must_change_password=False,
+        )
+        db_session.add(sa_user)
+        db_session.commit()
+except Exception as e:
+    db_session.rollback()
+finally:
+    db_session.close()
 
 app = FastAPI(
     title="School Portal API",
@@ -67,33 +116,16 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(tenants_router)
-
-# Helper to resolve acting user & detect active impersonation from JWT
-def get_acting_caller(request: Request, db: Session = Depends(get_db)):
-    auth_header = request.headers.get("authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return None
-    token = auth_header.split(" ")[1]
-    payload = decode_access_token(token)
-    if not payload:
-        return None
-
-    # Check if impersonation is active
-    impersonated_by_id = payload.get("impersonated_by")
-    user_id = payload.get("user_id")
-    email = payload.get("sub")
-    role = payload.get("role")
-    school_id = payload.get("school_id") or payload.get("tenant_id")
-
-    return {
-        "user_id": user_id,
-        "email": email,
-        "role": role,
-        "school_id": school_id,
-        "impersonated_by_id": impersonated_by_id,
-        "impersonated_by_email": payload.get("impersonated_by_email"),
-        "session_id": payload.get("impersonation_session_id"),
-    }
+app.include_router(students_router)
+app.include_router(teachers_router)
+app.include_router(attendance_router)
+app.include_router(homework_router)
+app.include_router(results_router)
+app.include_router(fees_router)
+app.include_router(users_router)
+app.include_router(analytics_router)
+app.include_router(announcements_router)
+app.include_router(schedules_router)
 
 # Pydantic Schemas
 class LoginRequest(BaseModel):
@@ -130,13 +162,16 @@ def read_root():
 def health_check():
     return {"status": "healthy", "version": "1.0.0", "database": "connected"}
 
-# User Listing Endpoint with Optional ?school_id= Filter
+# User Listing Endpoint with Optional ?school_id= Filter (Requires Authentication & Scoped Access)
 @app.get("/api/v1/users")
-def list_users(school_id: Optional[str] = None, request: Request = None, db: Session = Depends(get_db)):
-    caller = get_acting_caller(request, db)
+def list_users(
+    school_id: Optional[str] = None,
+    caller: dict = Depends(require_roles("super_admin", "school_admin", "principal", "chairman", "teacher", "accountant")),
+    db: Session = Depends(get_db)
+):
     query = db.query(User)
 
-    if caller and caller.get("role") != "super_admin":
+    if caller.get("role") != "super_admin":
         # Force non-super_admin callers to only see their own school's users, EXCLUDING platform super_admin
         query = query.filter(User.school_id == caller["school_id"]).filter(User.role != "super_admin")
     elif school_id:
@@ -320,11 +355,11 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     return {"message": "Password reset successfully. You can now log in with your new password."}
 
 @app.post("/api/v1/auth/change-password")
-def change_password(payload: ChangePasswordRequest, request: Request, db: Session = Depends(get_db)):
-    caller = get_acting_caller(request, db)
-    if not caller or not caller.get("email"):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication token required.")
-
+def change_password(
+    payload: ChangePasswordRequest,
+    caller: dict = Depends(require_roles("super_admin", "school_admin", "principal", "chairman", "teacher", "student", "parent", "accountant", "reception")),
+    db: Session = Depends(get_db)
+):
     user = db.query(User).filter(User.email == caller["email"]).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -357,12 +392,11 @@ def change_password(payload: ChangePasswordRequest, request: Request, db: Sessio
 
 # PART A: Admin Forced Password Reset with Audit Trail
 @app.post("/api/v1/users/{user_id}/admin-reset-password")
-def admin_reset_password(user_id: str, request: Request, db: Session = Depends(get_db)):
-    caller = get_acting_caller(request, db)
-    acting_role = "super_admin" if (caller and caller.get("impersonated_by_id")) else (caller.get("role") if caller else None)
-    if not caller or acting_role not in ["super_admin", "school_admin"]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can reset user passwords.")
-
+def admin_reset_password(
+    user_id: str,
+    caller: dict = Depends(require_roles("super_admin", "school_admin")),
+    db: Session = Depends(get_db)
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail=f"User '{user_id}' not found.")
@@ -406,11 +440,11 @@ def admin_reset_password(user_id: str, request: Request, db: Session = Depends(g
 
 # PART B: Super Admin Passwordless Impersonation Endpoint
 @app.post("/api/v1/auth/impersonate/{target_user_id}")
-def start_impersonation(target_user_id: str, request: Request, db: Session = Depends(get_db)):
-    caller = get_acting_caller(request, db)
-    if not caller or caller.get("role") != "super_admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Super Administrators can impersonate users.")
-
+def start_impersonation(
+    target_user_id: str,
+    caller: dict = Depends(require_roles("super_admin")),
+    db: Session = Depends(get_db)
+):
     target_user = db.query(User).filter(User.id == target_user_id).first()
     if not target_user:
         raise HTTPException(status_code=404, detail=f"Target user '{target_user_id}' not found.")
@@ -462,7 +496,11 @@ def start_impersonation(target_user_id: str, request: Request, db: Session = Dep
     }
 
 @app.post("/api/v1/auth/impersonate/{session_id}/end")
-def end_impersonation(session_id: str, db: Session = Depends(get_db)):
+def end_impersonation(
+    session_id: str,
+    caller: dict = Depends(require_roles("super_admin", "school_admin", "principal", "chairman", "teacher", "student", "parent", "accountant", "reception")),
+    db: Session = Depends(get_db)
+):
     audit = db.query(ImpersonationAudit).filter(ImpersonationAudit.id == session_id).first()
     if audit and not audit.ended_at:
         audit.ended_at = datetime.datetime.utcnow()
@@ -472,11 +510,11 @@ def end_impersonation(session_id: str, db: Session = Depends(get_db)):
 
 # AUDIT TRAIL LISTING ENDPOINTS
 @app.get("/api/v1/audit/password-resets")
-def get_password_reset_audits(school_id: Optional[str] = None, request: Request = None, db: Session = Depends(get_db)):
-    caller = get_acting_caller(request, db)
-    if not caller or caller.get("role") not in ["super_admin", "school_admin", "principal", "chairman"]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to audit logs.")
-
+def get_password_reset_audits(
+    school_id: Optional[str] = None,
+    caller: dict = Depends(require_roles("super_admin", "school_admin", "principal", "chairman")),
+    db: Session = Depends(get_db)
+):
     query = db.query(PasswordResetAudit)
 
     # Filter school_id for non-super_admins
@@ -508,11 +546,10 @@ def get_password_reset_audits(school_id: Optional[str] = None, request: Request 
     return results
 
 @app.get("/api/v1/audit/impersonations")
-def get_impersonation_audits(request: Request = None, db: Session = Depends(get_db)):
-    caller = get_acting_caller(request, db)
-    if not caller or caller.get("role") != "super_admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Super Administrators can view impersonation audit logs.")
-
+def get_impersonation_audits(
+    caller: dict = Depends(require_roles("super_admin")),
+    db: Session = Depends(get_db)
+):
     audits = db.query(ImpersonationAudit).order_by(ImpersonationAudit.started_at.desc()).all()
     return [
         {

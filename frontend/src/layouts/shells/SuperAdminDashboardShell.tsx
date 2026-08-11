@@ -2,9 +2,11 @@ import React from 'react';
 import { StatCard, Card, CardHeader, CardBody, Button, Badge } from '@/shared/components';
 import { Globe, Building2, ShieldCheck, Activity, Plus, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTenant } from '@/context/TenantContext';
 
 export const SuperAdminDashboardShell: React.FC = () => {
   const navigate = useNavigate();
+  const { tenants } = useTenant();
 
   return (
     <div className="space-y-6">
@@ -45,15 +47,15 @@ export const SuperAdminDashboardShell: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total Tenants"
-          value="4 Institutions"
+          value={`${tenants.length} Institutions`}
           hint="All active & healthy"
           tone="success"
           icon={Building2}
         />
         <StatCard
-          label="Global Platform Users"
-          value="1,512"
-          hint="Cross-tenant sessions"
+          label="Global Multi-Tenant SaaS"
+          value="Schema Isolated"
+          hint="FastAPI + PostgreSQL DB"
           tone="purple"
           icon={Globe}
         />
@@ -65,15 +67,15 @@ export const SuperAdminDashboardShell: React.FC = () => {
           icon={Activity}
         />
         <StatCard
-          label="Database Load"
-          value="14.2%"
-          hint="Schema-isolated cluster"
+          label="Security Guard"
+          value="RBAC Enforced"
+          hint="Cross-tenant isolation"
           tone="gold"
           icon={ShieldCheck}
         />
       </div>
 
-      {/* Quick Tenant Directory Preview */}
+      {/* Tenant Directory Preview */}
       <Card>
         <CardHeader
           title="Tenant Status Summary"
@@ -90,33 +92,26 @@ export const SuperAdminDashboardShell: React.FC = () => {
           }
         />
         <CardBody className="p-0 divide-y divide-slate-100">
-          <div className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
-                M
+          {tenants.map((t) => (
+            <div key={t.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs uppercase">
+                  {t.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">{t.name}</p>
+                  <p className="text-[11px] text-slate-400 font-mono">Code: {t.code} • ID: {t.id}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-800">AMPS Main Senior Secondary</p>
-                <p className="text-[11px] text-slate-400 font-mono">amps-main • Jaipur, RJ</p>
-              </div>
+              <Badge tone="success" size="sm" dot>
+                Active
+              </Badge>
             </div>
-            <Badge tone="success" size="sm" dot>Active</Badge>
-          </div>
-
-          <div className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
-                D
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-800">DPS World Academy</p>
-                <p className="text-[11px] text-slate-400 font-mono">dps-jaipur • Jaipur, RJ</p>
-              </div>
-            </div>
-            <Badge tone="success" size="sm" dot>Active</Badge>
-          </div>
+          ))}
         </CardBody>
       </Card>
     </div>
   );
 };
+
+export default SuperAdminDashboardShell;

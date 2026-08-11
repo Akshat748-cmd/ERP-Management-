@@ -6,6 +6,9 @@ export interface SchoolTenant {
   code: string;
   domain?: string;
   logoUrl?: string;
+  sealUrl?: string;
+  examControllerName?: string;
+  principalName?: string;
   contactEmail?: string;
   contactPhone?: string;
   address?: string;

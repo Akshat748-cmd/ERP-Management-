@@ -32,6 +32,9 @@ class TenantResponse(BaseModel):
     code: str
     domain: str
     logoUrl: Optional[str] = None
+    sealUrl: Optional[str] = None
+    examControllerName: Optional[str] = None
+    principalName: Optional[str] = None
     contactEmail: Optional[str] = None
     contactPhone: Optional[str] = None
     address: Optional[str] = None
@@ -112,6 +115,9 @@ def get_tenant_by_id(tenant_id: str, db: Session = Depends(get_db)):
         code=tenant.code,
         domain=tenant.domain,
         logoUrl=tenant.logo_url,
+        sealUrl=tenant.seal_url,
+        examControllerName=tenant.exam_controller_name,
+        principalName=tenant.principal_name,
         contactEmail=tenant.admin_email,
         contactPhone=tenant.phone,
         address=f"{tenant.city}, India" if tenant.city else "Main Campus",
@@ -123,6 +129,9 @@ class TenantPickerResponse(BaseModel):
     name: str
     code: str
     logoUrl: Optional[str] = None
+    sealUrl: Optional[str] = None
+    examControllerName: Optional[str] = None
+    principalName: Optional[str] = None
 
 @router.get("", response_model=List[TenantPickerResponse])
 def list_tenants(db: Session = Depends(get_db)):
@@ -133,6 +142,9 @@ def list_tenants(db: Session = Depends(get_db)):
             name=t.name,
             code=t.code,
             logoUrl=t.logo_url,
+            sealUrl=t.seal_url,
+            examControllerName=t.exam_controller_name,
+            principalName=t.principal_name,
         )
         for t in tenants
     ]

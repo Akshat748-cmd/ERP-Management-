@@ -15,33 +15,29 @@ export interface User {
 export interface Student {
   id: string;
   schoolId: string;
-  userId: string;
-  rollNumber: string;
-  admissionNumber: string;
   fullName: string;
-  gradeClass: string;
-  section: string;
-  gender: 'male' | 'female' | 'other';
-  dateOfBirth: string;
-  parentIds: string[];
-  address: string;
-  emergencyContact: string;
-  status: 'active' | 'graduated' | 'transferred' | 'withdrawn';
+  rollNumber: string;
+  className: string;
+  section?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  parentUserId?: string;
+  admissionDate: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface Teacher {
   id: string;
   schoolId: string;
-  userId: string;
-  employeeCode: string;
   fullName: string;
-  designation: string;
-  department: string;
+  employeeCode: string;
   subjects: string[];
-  assignedClasses: string[];
-  qualification: string;
-  joiningDate: string;
-  status: 'active' | 'on_leave' | 'resigned';
+  classesAssigned: string[];
+  phone?: string;
+  email?: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface Parent {
@@ -62,12 +58,12 @@ export interface AttendanceRecord {
   schoolId: string;
   studentId: string;
   studentName: string;
-  gradeClass: string;
-  section: string;
+  rollNumber: string;
+  className: string;
   date: string; // YYYY-MM-DD
-  status: 'present' | 'absent' | 'late' | 'excused';
-  markedByTeacherId: string;
-  remarks?: string;
+  status: 'present' | 'absent' | 'late';
+  markedByUserId?: string;
+  markedAt: string;
 }
 
 export interface Fee {
@@ -75,14 +71,16 @@ export interface Fee {
   schoolId: string;
   studentId: string;
   studentName: string;
+  rollNumber: string;
+  className: string;
+  feeTerm: string;
   title: string;
-  amount: number;
+  amountDue: number;
+  amountPaid: number;
+  paymentStatus: 'paid' | 'pending' | 'partial';
   dueDate: string;
-  status: 'paid' | 'pending' | 'overdue' | 'partially_paid';
-  paidAmount: number;
-  paymentMethod?: 'cash' | 'online' | 'cheque' | 'bank_transfer';
-  transactionId?: string;
-  paidAt?: string;
+  lastPaymentDate?: string;
+  createdAt: string;
 }
 
 export interface ResultSubject {
@@ -97,13 +95,17 @@ export interface Result {
   schoolId: string;
   studentId: string;
   studentName: string;
-  examTitle: string; // e.g., Mid-Term 2026, Annual Exam
-  term: string;
-  academicYear: string;
+  rollNumber: string;
+  examName: string;
+  className: string;
   subjects: ResultSubject[];
-  totalMarks: number;
-  totalObtained: number;
+  aggregateScore: number;
+  totalMaxMarks: number;
   percentage: number;
-  overallGrade: string;
-  published: boolean;
+  grade: string;
+  status: 'draft' | 'published';
+  enteredByTeacherId?: string;
+  publishedByPrincipalId?: string;
+  publishedAt?: string;
+  createdAt: string;
 }

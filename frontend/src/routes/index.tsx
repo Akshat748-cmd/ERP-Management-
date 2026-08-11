@@ -87,7 +87,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="students"
           element={
-            <PermissionGuard requiredPermissions={['view_students', 'view_own_academic_record']}>
+            <PermissionGuard requiredPermissions={['view_students', 'view_own_academic_record', 'view_own_child_data']}>
               <StudentsPage />
             </PermissionGuard>
           }

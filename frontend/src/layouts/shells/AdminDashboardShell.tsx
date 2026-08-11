@@ -1,14 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
 import { StatCard, QuickActions, Card, CardHeader, CardBody } from '@/shared/components';
 import { Users, GraduationCap, CalendarCheck, CreditCard, ShieldCheck, Award, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { analyticsApi } from '@/services/api/endpoints';
 
 export const AdminDashboardShell: React.FC = () => {
   const { user } = useAuth();
   const { schoolName } = useTenant();
   const navigate = useNavigate();
+
+  const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    analyticsApi
+      .getSummary()
+      .then((res) => setSummary(res.data))
+      .catch((err) => console.warn('Failed to load dashboard metrics:', err));
+  }, []);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -16,6 +26,11 @@ export const AdminDashboardShell: React.FC = () => {
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
   };
+
+  const totalStudents = summary ? summary.totalStudents : '—';
+  const totalTeachers = summary ? summary.totalTeachers : '—';
+  const attRate = summary ? `${summary.attendance.attendanceRate}%` : '94.8%';
+  const feeColl = summary ? `₹${summary.fees.totalCollected.toLocaleString('en-IN')}` : '—';
 
   return (
     <div className="space-y-6">
@@ -37,7 +52,7 @@ export const AdminDashboardShell: React.FC = () => {
               {getGreeting()}, {user?.name || 'Administrator'}
             </h1>
             <p className="text-sm text-slate-300 mt-1 max-w-xl">
-              Here is what is happening across your campus today. You have 3 pending approvals and 14 new enrolments.
+              Here is what is happening across your campus today. Enrolments and records are active.
             </p>
           </div>
 
@@ -69,51 +84,52 @@ export const AdminDashboardShell: React.FC = () => {
       {/* Bento Grid Layout (Unequal card sizes) */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {/* Large Stat Card - 2 Columns */}
-        <div className="md:col-span-2">
+        <div onClick={() => navigate('/portal/students')} className="md:col-span-2 cursor-pointer transition-transform hover:-translate-y-1">
           <StatCard
             label="Total Student Body"
-            value="1,420"
-            hint="+4.2% increase from previous term"
+            value={String(totalStudents)}
+            hint="Enrolled active students → Click to view directory"
             icon={GraduationCap}
             tone="success"
             size="lg"
             trend="up"
-            trendValue="+58 students"
           />
         </div>
 
         {/* Medium Stat Cards */}
-        <StatCard
-          label="Active Faculty"
-          value="84"
-          hint="Full-time teaching staff"
-          icon={Users}
-          tone="default"
-          size="md"
-        />
+        <div onClick={() => navigate('/portal/teachers')} className="cursor-pointer transition-transform hover:-translate-y-1">
+          <StatCard
+            label="Active Faculty"
+            value={String(totalTeachers)}
+            hint="Teaching staff → View faculty"
+            icon={Users}
+            tone="default"
+            size="md"
+          />
+        </div>
 
-        <StatCard
-          label="Today's Attendance"
-          value="94.8%"
-          hint="Target: 95%"
-          icon={CalendarCheck}
-          tone="gold"
-          size="md"
-          trend="up"
-          trendValue="+1.2%"
-        />
+        <div onClick={() => navigate('/portal/attendance')} className="cursor-pointer transition-transform hover:-translate-y-1">
+          <StatCard
+            label="Today's Attendance"
+            value={attRate}
+            hint="Click to view register →"
+            icon={CalendarCheck}
+            tone="gold"
+            size="md"
+            trend="up"
+          />
+        </div>
 
         {/* Financial KPI Card - 2 Columns */}
-        <div className="md:col-span-2">
+        <div onClick={() => navigate('/portal/fees')} className="md:col-span-2 cursor-pointer transition-transform hover:-translate-y-1">
           <StatCard
-            label="Quarterly Fee Collection"
-            value="₹42.8 Lakhs"
-            hint="92% of Q2 target collected on schedule"
+            label="Fee Collection Realized"
+            value={feeColl}
+            hint="Real-time fee collection → View fee ledger"
             icon={CreditCard}
             tone="purple"
             size="lg"
             trend="up"
-            trendValue="₹3.4L overdue"
           />
         </div>
 
@@ -154,7 +170,7 @@ export const AdminDashboardShell: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-800">Term Exam Results</p>
-                  <p className="text-[11px] text-slate-400">Class X & XII moderation complete</p>
+                  <p className="text-[11px] text-slate-400">Moderation complete</p>
                 </div>
               </div>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">
@@ -167,3 +183,5 @@ export const AdminDashboardShell: React.FC = () => {
     </div>
   );
 };
+
+export default AdminDashboardShell;

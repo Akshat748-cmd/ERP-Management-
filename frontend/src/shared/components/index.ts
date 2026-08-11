@@ -15,5 +15,9 @@ export * from './SectionHeader';
 export * from './SearchCommand';
 export * from './ProfileMenu';
 export * from './QuickActions';
+export * from './AnnouncementsModal';
+export * from './ScheduleModal';
 export * from './MetricCard';
 export * from './ThemeSwitcher';
+export * from './TeacherCheckInGate';
+

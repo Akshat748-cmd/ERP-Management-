@@ -12,6 +12,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const savedUser = localStorage.getItem('amps_auth_user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
+  // TODO: move to httpOnly cookie storage before production launch
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('amps_auth_token');
   });
@@ -30,6 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   // Sync session with localStorage
+  // TODO: move to httpOnly cookie storage before production launch
   useEffect(() => {
     if (user && token) {
       localStorage.setItem('amps_auth_user', JSON.stringify(user));
@@ -41,12 +43,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [user, token]);
 
   useEffect(() => {
-    if (impersonation.active) {
-      localStorage.setItem('amps_impersonation_session', JSON.stringify(impersonation));
-    } else {
-      localStorage.removeItem('amps_impersonation_session');
-    }
-  }, [impersonation]);
+    const handleUnauthorized = () => {
+      console.warn('[AuthContext] Unauthorized event received. Clearing session...');
+      setUser(null);
+      setToken(null);
+      setImpersonation({ active: false, sessionId: null, originalUser: null, originalToken: null });
+      localStorage.clear();
+      window.location.href = '/login';
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
 
   // Derive permissions cleanly from single source of truth permissions.ts
   const permissions: Permission[] = useMemo(() => {
@@ -93,8 +101,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setImpersonation(newImpState);
       setUser(impersonatedUser);
       setToken(data.access_token);
+      // TODO: move to httpOnly cookie storage before production launch
       localStorage.setItem('amps_auth_user', JSON.stringify(impersonatedUser));
       localStorage.setItem('amps_auth_token', data.access_token);
+      if (impersonatedUser.schoolId) {
+        localStorage.setItem('amps_active_tenant_id', impersonatedUser.schoolId);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -114,8 +126,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (impersonation.originalUser && impersonation.originalToken) {
         setUser(impersonation.originalUser);
         setToken(impersonation.originalToken);
+        // TODO: move to httpOnly cookie storage before production launch
         localStorage.setItem('amps_auth_user', JSON.stringify(impersonation.originalUser));
         localStorage.setItem('amps_auth_token', impersonation.originalToken);
+        if (impersonation.originalUser.schoolId) {
+          localStorage.setItem('amps_active_tenant_id', impersonation.originalUser.schoolId);
+        }
       }
 
       setImpersonation({ active: false, sessionId: null, originalUser: null, originalToken: null });
@@ -139,34 +155,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       let data: any;
       try {
-        const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Tenant-Id': schoolId || '',
-          },
-          body: JSON.stringify({ email, password, role }),
-        });
-
-        if (!response.ok) {
-          let errorMessage = 'Login failed. Please check credentials.';
-          try {
-            const errorData = await response.json();
-            if (errorData && (errorData.detail || errorData.message)) {
-              errorMessage = errorData.detail || errorData.message;
-            }
-          } catch {
-            // ignore JSON parse error
+        const response = await apiClient.post(
+          '/auth/login',
+          { email, password, role },
+          {
+            headers: {
+              'X-Tenant-Id': schoolId || '',
+            },
           }
-          throw new Error(errorMessage);
-        }
-
-        data = await response.json();
+        );
+        data = response.data;
       } catch (err: any) {
         const allowOfflineDemo =
           import.meta.env.DEV && import.meta.env.VITE_ALLOW_OFFLINE_DEMO === 'true';
 
-        if (allowOfflineDemo && schoolId && !err.message?.includes('User does not belong') && !err.message?.includes('Invalid email')) {
+        const apiErrorMessage =
+          err.response?.data?.detail || err.response?.data?.message || err.message;
+
+        if (
+          allowOfflineDemo &&
+          schoolId &&
+          !apiErrorMessage?.includes('User does not belong') &&
+          !apiErrorMessage?.includes('Invalid email')
+        ) {
           console.warn('[AuthContext] Backend API unreachable, using developer offline demo bypass.');
           const authenticatedUser: AuthUser = {
             id: `usr_${Date.now()}`,
@@ -176,6 +187,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             schoolId,
           };
           const fallbackToken = `jwt_token_${Date.now()}`;
+          // TODO: move to httpOnly cookie storage before production launch
           localStorage.setItem('amps_auth_user', JSON.stringify(authenticatedUser));
           localStorage.setItem('amps_auth_token', fallbackToken);
           setUser(authenticatedUser);
@@ -183,7 +195,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return;
         }
 
-        throw err;
+        throw new Error(apiErrorMessage || 'Login failed. Please check credentials.');
       }
 
       const userData: AuthUser = {
@@ -195,6 +207,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         mustChangePassword: !!data.user.mustChangePassword,
       };
 
+      // TODO: move to httpOnly cookie storage before production launch
       localStorage.setItem('amps_auth_user', JSON.stringify(userData));
       localStorage.setItem('amps_auth_token', data.access_token);
       setUser(userData);

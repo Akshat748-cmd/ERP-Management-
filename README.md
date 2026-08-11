@@ -78,3 +78,18 @@ npm run build
 # Lint frontend codebase
 npm run lint
 ```
+
+---
+
+## 📊 Demo Data Seeding
+
+To populate realistic demo data (Students, Teachers, Attendance, Homework, Examination Results, and Fee Records) for an existing tenant school using Indian locale (`en_IN`):
+
+```bash
+# Seed demo data for default/first tenant
+python backend/seed_demo_data.py
+
+# Or specify a school ID slug explicitly:
+python backend/seed_demo_data.py --school-id amps-sr-sec-01
+```
+

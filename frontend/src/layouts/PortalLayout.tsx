@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
-import { SchoolLogo, NotificationBell, SearchCommand, ProfileMenu, ThemeSwitcher } from '@/shared/components';
+import { SchoolLogo, NotificationBell, SearchCommand, ProfileMenu, ThemeSwitcher, TeacherCheckInGate } from '@/shared/components';
 import { ImpersonationBanner } from '@/shared/components/ImpersonationBanner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -256,6 +256,7 @@ export const PortalLayout: React.FC = () => {
   );
 
   return (
+    <TeacherCheckInGate>
     <div className="flex h-screen overflow-hidden bg-[#F6F8FC] p-3 gap-3">
       {/* ─── Desktop Floating Sidebar ───────────────────────────────────── */}
       <aside
@@ -406,5 +407,6 @@ export const PortalLayout: React.FC = () => {
       {/* Global Command Search Palette */}
       <SearchCommand isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
+    </TeacherCheckInGate>
   );
 };

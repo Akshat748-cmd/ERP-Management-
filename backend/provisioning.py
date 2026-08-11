@@ -1,3 +1,5 @@
+import os
+import secrets
 from typing import List, Dict, Optional
 from sqlalchemy.orm import Session
 
@@ -61,13 +63,17 @@ def get_clean_school_code(tenant_id: str) -> str:
 
 def get_default_role_password(role_key: str, tenant_id: str) -> str:
     """
-    Generates default password following formula: <role_name><school_identifier>
-    For platform-level super_admin, default password is 'superadmin'.
-    Examples:
-    - super_admin          => superadmin
-    - chairman + dps       => chairmandps
-    - teacher + dps        => teacherdps
+    Generates default password.
+    In production environment (ENVIRONMENT=production):
+        Generates a cryptographically random password using secrets.token_urlsafe(10).
+    In development/testing environment (default):
+        Follows predictable formula: <role_name><school_identifier> (e.g. chairmandps).
+        For platform-level super_admin, default password is 'superadmin'.
     """
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    if env == "production":
+        return secrets.token_urlsafe(10)
+
     if role_key.lower() in ["super_admin", "superadmin"]:
         return "superadmin"
     school_code = get_clean_school_code(tenant_id)
@@ -84,17 +90,17 @@ def provision_school_users(
 ) -> List[Dict[str, str]]:
     """
     Provisions one User per role for a newly registered school tenant.
-    Auto-generates default passwords following the formula: <role><school_identifier>
-    (e.g., chairmandps, principaldps, teacherdps, studentdps).
-    Stores hashed passwords in the DB with must_change_password=True.
+    Auto-generates default passwords following environment settings.
+    Stores hashed passwords in DB with must_change_password gated by ENVIRONMENT (True in production, False in dev).
     """
     domain = f"{tenant_id}.ampsportal.edu"
     credentials = []
+    is_prod = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
     for item in SCHOOL_ROLES:
         role_key = item["role"]
 
-        # Determine default role password (e.g. chairmandps, teacherdps, principaldps)
+        # Determine default role password
         default_pwd = get_default_role_password(role_key, tenant_id)
 
         if role_key == "school_admin":
@@ -119,7 +125,7 @@ def provision_school_users(
                 role=role_key,
                 school_id=tenant_id,
                 is_active=True,
-                must_change_password=False,
+                must_change_password=is_prod,
             )
             db.add(user)
 

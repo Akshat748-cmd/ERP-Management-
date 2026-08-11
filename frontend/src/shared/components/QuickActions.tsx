@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserPlus, CalendarCheck, BookPlus, CreditCard, Megaphone, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AnnouncementsModal } from './AnnouncementsModal';
+import { ScheduleModal } from './ScheduleModal';
 
 export interface QuickActionItem {
   id: string;
@@ -49,7 +51,7 @@ export const DEFAULT_QUICK_ACTIONS: QuickActionItem[] = [
     label: 'Announcements',
     description: 'Notice board alert',
     icon: Megaphone,
-    path: '/portal/analytics',
+    path: '#announcements',
     color: 'bg-rose-500 text-white hover:bg-rose-600',
   },
   {
@@ -57,7 +59,7 @@ export const DEFAULT_QUICK_ACTIONS: QuickActionItem[] = [
     label: "Today's Schedule",
     description: 'View class timetable',
     icon: Calendar,
-    path: '/portal/dashboard',
+    path: '#schedule',
     color: 'bg-indigo-500 text-white hover:bg-indigo-600',
   },
 ];
@@ -67,30 +69,56 @@ export const QuickActions: React.FC<{ actions?: QuickActionItem[] }> = ({
 }) => {
   const navigate = useNavigate();
 
+  const [isAnnouncementsOpen, setIsAnnouncementsOpen] = useState(false);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+
+  const handleClick = (action: QuickActionItem) => {
+    if (action.id === 'announcements') {
+      setIsAnnouncementsOpen(true);
+    } else if (action.id === 'schedule') {
+      setIsScheduleOpen(true);
+    } else {
+      navigate(action.path);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      {actions.map((action) => {
-        const Icon = action.icon;
-        return (
-          <button
-            key={action.id}
-            onClick={() => navigate(action.path)}
-            className="flex flex-col items-start p-4 bg-white rounded-2xl border border-slate-100/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left group cursor-pointer"
-          >
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-105 ${action.color}`}>
-              <Icon className="w-4 h-4" />
-            </div>
-            <p className="text-[13px] font-semibold text-slate-800 leading-tight group-hover:text-slate-900">
-              {action.label}
-            </p>
-            {action.description && (
-              <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
-                {action.description}
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {actions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              onClick={() => handleClick(action)}
+              className="flex flex-col items-start p-4 bg-white rounded-2xl border border-slate-100/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left group cursor-pointer"
+            >
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-105 ${action.color}`}>
+                <Icon className="w-4 h-4" />
+              </div>
+              <p className="text-[13px] font-semibold text-slate-800 leading-tight group-hover:text-slate-900">
+                {action.label}
               </p>
-            )}
-          </button>
-        );
-      })}
-    </div>
+              {action.description && (
+                <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                  {action.description}
+                </p>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Interactive Modals */}
+      <AnnouncementsModal
+        isOpen={isAnnouncementsOpen}
+        onClose={() => setIsAnnouncementsOpen(false)}
+      />
+
+      <ScheduleModal
+        isOpen={isScheduleOpen}
+        onClose={() => setIsScheduleOpen(false)}
+      />
+    </>
   );
 };

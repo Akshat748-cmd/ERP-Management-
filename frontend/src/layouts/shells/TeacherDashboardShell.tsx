@@ -37,12 +37,20 @@ export const TeacherDashboardShell: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats - CLICKABLE TO DIRECT MODULE PAGES */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Assigned Classes" value="4 Sections" hint="XII-A, XI-B, X-A, IX-C" icon={BookOpen} tone="default" />
-        <StatCard label="Total Students" value="168" hint="Across 4 sections" icon={Users} tone="success" />
-        <StatCard label="Attendance Status" value="Marked" hint="Period 1 complete" icon={CalendarCheck} tone="gold" />
-        <StatCard label="Pending Homework" value="3 Reviews" hint="To be evaluated" icon={Clock} tone="purple" />
+        <div onClick={() => navigate('/portal/students')} className="cursor-pointer transition-transform hover:-translate-y-1">
+          <StatCard label="Assigned Classes" value="4 Sections" hint="Click to view students →" icon={BookOpen} tone="default" />
+        </div>
+        <div onClick={() => navigate('/portal/students')} className="cursor-pointer transition-transform hover:-translate-y-1">
+          <StatCard label="Total Students" value="168" hint="Click to view directory →" icon={Users} tone="success" />
+        </div>
+        <div onClick={() => navigate('/portal/attendance')} className="cursor-pointer transition-transform hover:-translate-y-1">
+          <StatCard label="Attendance Status" value="Marked" hint="Click to mark attendance →" icon={CalendarCheck} tone="gold" />
+        </div>
+        <div onClick={() => navigate('/portal/homework')} className="cursor-pointer transition-transform hover:-translate-y-1">
+          <StatCard label="Pending Homework" value="3 Reviews" hint="Click to evaluate →" icon={Clock} tone="purple" />
+        </div>
       </div>
 
       {/* Today's Schedule Card */}
